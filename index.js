@@ -45,6 +45,7 @@ async function run() {
 
 
         const usersCollection = client.db("cordaDB").collection("users")
+        const classCollection = client.db("cordaDB").collection("classes")
 
 
 
@@ -107,6 +108,19 @@ async function run() {
             const user = await usersCollection.findOne(query);
             const result = {instractor : user?.role === 'instractor'};
             res.send(result)
+        })
+
+
+        // create classes api
+        app.post('/classes', async(req,res)=>{
+            const classes = req.body;
+            const result = await classCollection.insertOne(classes);
+            res.send(result)
+        })
+
+        app.get('/classes', async (req,res)=>{
+            const result = await classCollection.find().toArray();
+            res.send(result);
         })
 
         await client.db("admin").command({ ping: 1 });
