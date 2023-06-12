@@ -46,6 +46,7 @@ async function run() {
 
         const usersCollection = client.db("cordaDB").collection("users")
         const classCollection = client.db("cordaDB").collection("classes")
+        const selectedClassCollection = client.db("cordaDB").collection("selectedClasses")
 
 
 
@@ -136,9 +137,19 @@ async function run() {
             res.send(result)
         })
 
+        app.patch('/classes/deny/:idd', async(req,res)=>{
+            const id = req.params.idd
+            const filter = {_id: new ObjectId(id)}
+            const updatedDoc = {
+                $set: {
+                    status: 'deny'
+                }
+            }
+            const result = await classCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+        })
 
-
-        app.patch('/classes/:id', async(req,res)=>{
+        app.patch('/classes/approved/:id', async(req,res)=>{
             const id = req.params.id
             const filter = {_id: new ObjectId(id)}
             const updatedDoc = {
@@ -149,6 +160,39 @@ async function run() {
             const result = await classCollection.updateOne(filter, updatedDoc)
             res.send(result)
         })
+
+        app.patch('/classes/feedback/:id', async(req,res)=>{
+            const feedback = req.body
+            console.log(feedback)
+            const id = req.params.id
+            const filter = {_id: new ObjectId(id)}
+            const updatedDoc = {
+                $set: {
+                    feedback: feedback
+                }
+            }
+            const result = await classCollection.updateOne(filter, updatedDoc)
+            res.send(result)
+        })
+      
+        app.post('/selectedClasses', async(req,res)=>{
+            const classes = req.body;
+            const result = await selectedClassCollection.insertOne(classes);
+            res.send(result)
+        })
+
+        app.get('/selectedClasses', async(req,res)=>{
+            const result = await selectedClassCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.delete('/selectedClasses/:id', async(req,res)=>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await selectedClassCollection.deleteOne(query);
+            res.send(result)
+        })
+
 
 
         await client.db("admin").command({ ping: 1 });
