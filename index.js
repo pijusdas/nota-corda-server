@@ -3,6 +3,8 @@ const cors = require('cors');
 const app = express()
 // const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.PAYMENT_SECRETE_KEY)
+// const stripe = require("stripe")(process.env.PAYMENT_SECRETE_KEY)
 
 const port = process.env.PORT || 5000;
 
@@ -47,6 +49,8 @@ async function run() {
         const usersCollection = client.db("cordaDB").collection("users")
         const classCollection = client.db("cordaDB").collection("classes")
         const selectedClassCollection = client.db("cordaDB").collection("selectedClasses")
+        const paymentCollection = client.db("cordaDB").collection("payments")
+
 
 
 
@@ -193,7 +197,25 @@ async function run() {
             res.send(result)
         })
 
+        app.post('/create-payment-intend', async(req,res)=>{
+            const {price} = req.body
+            const amount = price*100
+            console.log(price,amount)
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'USD',
+                payment_method_types: ['card']
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+              });
+        })
 
+        app.post('/payments', async(req,res)=>{
+            const payment = req.body;
+            const result = await paymentCollection.insertOne(payment);
+            res.send(result)
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
