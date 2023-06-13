@@ -71,9 +71,9 @@ async function run() {
         })
 
         // make admin api
-        app.patch('/users/admin/:id', async(req,res)=>{
+        app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     role: 'admin'
@@ -83,19 +83,19 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/users/admin/:email', async(req,res)=>{
+        app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
 
-            const query = {email: email};
+            const query = { email: email };
             const user = await usersCollection.findOne(query);
-            const result = {admin : user?.role === 'admin'};
+            const result = { admin: user?.role === 'admin' };
             res.send(result)
         })
 
         // make instractor api
-        app.patch('/users/instractor/:id', async(req,res)=>{
+        app.patch('/users/instractor/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     role: 'instractor'
@@ -106,31 +106,31 @@ async function run() {
         })
 
 
-        app.get('/users/instractor/:email', async(req,res)=>{
+        app.get('/users/instractor/:email', async (req, res) => {
             const email = req.params.email;
 
-            const query = {email: email};
+            const query = { email: email };
             const user = await usersCollection.findOne(query);
-            const result = {instractor : user?.role === 'instractor'};
+            const result = { instractor: user?.role === 'instractor' };
             res.send(result)
         })
 
 
         // create classes api
-        app.post('/classes', async(req,res)=>{
+        app.post('/classes', async (req, res) => {
             const classes = req.body;
             const result = await classCollection.insertOne(classes);
             res.send(result)
         })
 
 
-        app.get('/classes', async(req,res)=>{
+        app.get('/classes', async (req, res) => {
             const result = await classCollection.find().toArray()
             res.send(result)
         })
 
 
-        app.get('/classes', async (req,res)=>{
+        app.get('/classes', async (req, res) => {
             const email = req.query.email;
             console.log(email)
             if (!email) {
@@ -141,9 +141,9 @@ async function run() {
             res.send(result)
         })
 
-        app.patch('/classes/deny/:idd', async(req,res)=>{
+        app.patch('/classes/deny/:idd', async (req, res) => {
             const id = req.params.idd
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     status: 'deny'
@@ -153,9 +153,9 @@ async function run() {
             res.send(result)
         })
 
-        app.patch('/classes/approved/:id', async(req,res)=>{
+        app.patch('/classes/approved/:id', async (req, res) => {
             const id = req.params.id
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     status: 'approved'
@@ -165,11 +165,11 @@ async function run() {
             res.send(result)
         })
 
-        app.patch('/classes/feedback/:id', async(req,res)=>{
+        app.patch('/classes/feedback/:id', async (req, res) => {
             const feedback = req.body
             console.log(feedback)
             const id = req.params.id
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     feedback: feedback
@@ -178,29 +178,29 @@ async function run() {
             const result = await classCollection.updateOne(filter, updatedDoc)
             res.send(result)
         })
-      
-        app.post('/selectedClasses', async(req,res)=>{
+
+        app.post('/selectedClasses', async (req, res) => {
             const classes = req.body;
             const result = await selectedClassCollection.insertOne(classes);
             res.send(result)
         })
 
-        app.get('/selectedClasses', async(req,res)=>{
+        app.get('/selectedClasses', async (req, res) => {
             const result = await selectedClassCollection.find().toArray()
             res.send(result)
         })
 
-        app.delete('/selectedClasses/:id', async(req,res)=>{
+        app.delete('/selectedClasses/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await selectedClassCollection.deleteOne(query);
             res.send(result)
         })
 
-        app.post('/create-payment-intend', async(req,res)=>{
-            const {price} = req.body
-            const amount = price*100
-            console.log(price,amount)
+        app.post('/create-payment-intend', async (req, res) => {
+            const { price } = req.body
+            const amount = price * 100
+            console.log(price, amount)
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
                 currency: 'USD',
@@ -208,33 +208,54 @@ async function run() {
             });
             res.send({
                 clientSecret: paymentIntent.client_secret,
-              });
+            });
         })
 
-        app.post('/payments', async(req,res)=>{
-            // const payment = req.body;
-            // const insertedResult = await paymentCollection.insertOne(payment);
 
-            // const query = {_id: { $in: [new ObjectId(payment.ClasId)] }}
-            // const deleteResult = await selectedClassCollection.deleteOne(query)
-            // res.send(insertedResult,deleteResult)
+        app.get('/payments/:email', async (req, res) => {
             try {
-                const payment = req.body;
-                const insertedResult = await paymentCollection.insertOne(payment);
-            
-                const query = { _id: { $in: [new ObjectId(payment.ClasId)] } };
-                const deleteResult = await selectedClassCollection.deleteOne(query);
-            
-                if (deleteResult.deletedCount === 1) {
-                  res.send({ success: true });
-                } else {
-                  res.send({ success: false, message: 'Failed to delete the selected class' });
-                }
-                // res.send(insertedResult)
-              } catch (error) {
-                res.status(500).send({ success: false, error: 'An error occurred' });
-              }
+              const email = req.params.email;
+              const query = { email: email };
+              const payments = await paymentCollection.find(query).toArray();
+              res.send( payments );
+            } catch (error) {
+              res.status(500).send({ success: false, error: 'An error occurred' });
+            }
+          });
+
+        app.post('/payments', async (req, res) => {
+          
+
+            const payment = req.body;
+            const insertedResult = await paymentCollection.insertOne(payment);
+            const classId = payment.classesId;
+
+            const classQuery = { _id: { $eq: new ObjectId(classId) } };
+            const classData = await classCollection.findOne(classQuery);
+            const availableSeats = parseInt(classData?.availableSeats);
+            const enrolled = parseInt(classData?.enrolled);
+
+            console.log('231',availableSeats,enrolled)
+
+            const classUpdate = {
+                $set: { availableSeats: availableSeats - 1, enrolled: enrolled + 1 },
+
+            };
+
+            const classUpdateResult = await classCollection.updateOne(classQuery, classUpdate);
+
+
+            const query = { _id: { $in: [new ObjectId(payment.ClasId)] } };
+            const deleteResult = await selectedClassCollection.deleteOne(query);
+
+
+            res.send(deleteResult,insertedResult,classUpdateResult);
+
+
         })
+
+
+
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
