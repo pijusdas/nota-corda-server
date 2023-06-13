@@ -212,9 +212,28 @@ async function run() {
         })
 
         app.post('/payments', async(req,res)=>{
-            const payment = req.body;
-            const result = await paymentCollection.insertOne(payment);
-            res.send(result)
+            // const payment = req.body;
+            // const insertedResult = await paymentCollection.insertOne(payment);
+
+            // const query = {_id: { $in: [new ObjectId(payment.ClasId)] }}
+            // const deleteResult = await selectedClassCollection.deleteOne(query)
+            // res.send(insertedResult,deleteResult)
+            try {
+                const payment = req.body;
+                const insertedResult = await paymentCollection.insertOne(payment);
+            
+                const query = { _id: { $in: [new ObjectId(payment.ClasId)] } };
+                const deleteResult = await selectedClassCollection.deleteOne(query);
+            
+                if (deleteResult.deletedCount === 1) {
+                  res.send({ success: true });
+                } else {
+                  res.send({ success: false, message: 'Failed to delete the selected class' });
+                }
+                // res.send(insertedResult)
+              } catch (error) {
+                res.status(500).send({ success: false, error: 'An error occurred' });
+              }
         })
 
         await client.db("admin").command({ ping: 1 });
